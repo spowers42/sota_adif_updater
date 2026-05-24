@@ -4,9 +4,18 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { parseAdif } from '../adif/parser.js';
 import { serializeAdif, updateRecords } from '../adif/writer.js';
-import type { AdifFile } from '../adif/types.js';
+import type { AdifFile, AdifRecord } from '../adif/types.js';
 import { formatSotaRef, validateSotaRef } from '../validation/sota.js';
 import { formatPotaRef, validatePotaRef } from '../validation/pota.js';
+
+function existingValues(records: AdifRecord[], ...fieldNames: string[]): string[] {
+  const names = new Set(fieldNames.map((n) => n.toUpperCase()));
+  return [
+    ...new Set(
+      records.flatMap((r) => r.fields.filter((f) => names.has(f.name)).map((f) => f.value)),
+    ),
+  ];
+}
 
 function expandPath(filePath: string): string {
   if (filePath.startsWith('~/')) {
@@ -39,9 +48,21 @@ async function askForFile(): Promise<{ filePath: string; parsed: AdifFile }> {
   }
 }
 
-async function askForSotaRef(): Promise<string | undefined> {
-  const add = await confirm({ message: 'Add a SOTA reference to all records?', default: false });
-  if (!add) return undefined;
+async function askForSotaRef(records: AdifRecord[]): Promise<string | undefined> {
+  const existing = existingValues(records, 'SOTA_REF');
+
+  let proceed: boolean;
+  if (existing.length > 0) {
+    console.log(`\nExisting SOTA_REF found: ${existing.join(', ')}`);
+    proceed = await confirm({
+      message: 'Replace existing SOTA references in all records?',
+      default: false,
+    });
+  } else {
+    proceed = await confirm({ message: 'Add a SOTA reference to all records?', default: false });
+  }
+
+  if (!proceed) return undefined;
 
   const ref = await input({
     message: 'SOTA reference (e.g. W2/WE-003):',
@@ -55,9 +76,21 @@ async function askForSotaRef(): Promise<string | undefined> {
   return formatSotaRef(ref);
 }
 
-async function askForPotaRefs(): Promise<string[]> {
-  const add = await confirm({ message: 'Add a POTA reference to all records?', default: false });
-  if (!add) return [];
+async function askForPotaRefs(records: AdifRecord[]): Promise<string[]> {
+  const existing = existingValues(records, 'POTA_REF', 'POTA_REF_LIST');
+
+  let proceed: boolean;
+  if (existing.length > 0) {
+    console.log(`\nExisting POTA reference(s) found: ${existing.join(', ')}`);
+    proceed = await confirm({
+      message: 'Replace existing POTA references in all records?',
+      default: false,
+    });
+  } else {
+    proceed = await confirm({ message: 'Add a POTA reference to all records?', default: false });
+  }
+
+  if (!proceed) return [];
 
   const refs: string[] = [];
 
@@ -94,8 +127,8 @@ export async function runFlow(): Promise<void> {
     console.log('SOTA/POTA ADIF Updater\n');
 
     const { filePath, parsed } = await askForFile();
-    const sotaRef = await askForSotaRef();
-    const potaRefs = await askForPotaRefs();
+    const sotaRef = await askForSotaRef(parsed.records);
+    const potaRefs = await askForPotaRefs(parsed.records);
 
     if (!sotaRef && potaRefs.length === 0) {
       console.log('\nNo changes selected. Exiting.');
@@ -104,7 +137,8 @@ export async function runFlow(): Promise<void> {
 
     console.log('\nChanges to apply to all records:');
     if (sotaRef) console.log(`  SOTA_REF: ${sotaRef}`);
-    if (potaRefs.length > 0) console.log(`  POTA_REF: ${potaRefs.join(',')}`);
+    if (potaRefs.length === 1) console.log(`  POTA_REF: ${potaRefs[0]}`);
+    if (potaRefs.length > 1) console.log(`  POTA_REF_LIST: ${potaRefs.join(',')}`);
     console.log(`  Records affected: ${parsed.records.length}\n`);
 
     const apply = await confirm({ message: 'Apply these changes?', default: true });

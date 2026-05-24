@@ -20,6 +20,8 @@ const mockedReadFile = vi.mocked(readFile);
 const mockedWriteFile = vi.mocked(writeFile);
 
 const VALID_ADIF = '<ADIF_VER:5>3.1.4 <EOH>\n\n<CALL:4>W1AW <BAND:3>40m <EOR>\n';
+const ADIF_WITH_SOTA = '<ADIF_VER:5>3.1.4 <EOH>\n\n<CALL:4>W1AW <SOTA_REF:8>G/LD-003 <EOR>\n';
+const ADIF_WITH_POTA = '<ADIF_VER:5>3.1.4 <EOH>\n\n<CALL:4>W1AW <POTA_REF:6>K-9999 <EOR>\n';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -180,5 +182,72 @@ describe('runFlow', () => {
       expect.any(String),
       'utf-8',
     );
+  });
+
+  describe('existing reference warnings', () => {
+    it('asks to replace existing SOTA_REF and writes new value when confirmed', async () => {
+      // @ts-expect-error — overloads
+      mockedReadFile.mockResolvedValue(ADIF_WITH_SOTA);
+      mockedInput
+        .mockResolvedValueOnce('/fake/file.adi')
+        .mockResolvedValueOnce('W2/WE-003');
+      mockedConfirm
+        .mockResolvedValueOnce(true)  // replace existing SOTA
+        .mockResolvedValueOnce(false) // skip POTA
+        .mockResolvedValueOnce(true); // confirm apply
+
+      await runFlow();
+
+      expect(mockedWriteFile).toHaveBeenCalledOnce();
+      const written = mockedWriteFile.mock.calls[0][1] as string;
+      expect(written).toContain('<SOTA_REF:9>W2/WE-003');
+      expect(written).not.toContain('G/LD-003');
+    });
+
+    it('skips SOTA update and does not write when user declines to replace existing SOTA_REF', async () => {
+      // @ts-expect-error — overloads
+      mockedReadFile.mockResolvedValue(ADIF_WITH_SOTA);
+      mockedInput.mockResolvedValueOnce('/fake/file.adi');
+      mockedConfirm
+        .mockResolvedValueOnce(false) // decline replacing existing SOTA
+        .mockResolvedValueOnce(false); // skip POTA
+
+      await runFlow();
+
+      expect(mockedWriteFile).not.toHaveBeenCalled();
+    });
+
+    it('asks to replace existing POTA_REF and writes new value when confirmed', async () => {
+      // @ts-expect-error — overloads
+      mockedReadFile.mockResolvedValue(ADIF_WITH_POTA);
+      mockedInput
+        .mockResolvedValueOnce('/fake/file.adi')
+        .mockResolvedValueOnce('K-5033');
+      mockedConfirm
+        .mockResolvedValueOnce(false) // skip SOTA
+        .mockResolvedValueOnce(true)  // replace existing POTA
+        .mockResolvedValueOnce(false) // no more POTA
+        .mockResolvedValueOnce(true); // confirm apply
+
+      await runFlow();
+
+      expect(mockedWriteFile).toHaveBeenCalledOnce();
+      const written = mockedWriteFile.mock.calls[0][1] as string;
+      expect(written).toContain('<POTA_REF:6>K-5033');
+      expect(written).not.toContain('K-9999');
+    });
+
+    it('skips POTA update and does not write when user declines to replace existing POTA_REF', async () => {
+      // @ts-expect-error — overloads
+      mockedReadFile.mockResolvedValue(ADIF_WITH_POTA);
+      mockedInput.mockResolvedValueOnce('/fake/file.adi');
+      mockedConfirm
+        .mockResolvedValueOnce(false) // skip SOTA
+        .mockResolvedValueOnce(false); // decline replacing existing POTA
+
+      await runFlow();
+
+      expect(mockedWriteFile).not.toHaveBeenCalled();
+    });
   });
 });
