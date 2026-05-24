@@ -1,0 +1,37 @@
+version: '3'
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmds:
+      - npm install
+
+  dev:
+    desc: Run the application in development mode
+    cmds:
+      - npx tsx src/index.ts
+
+  build:
+    desc: Compile TypeScript to JavaScript
+    cmds:
+      - npx tsc
+
+  test:
+    desc: Run tests once
+    cmds:
+      - npx vitest run
+
+  test:watch:
+    desc: Run tests in watch mode
+    cmds:
+      - npx vitest
+
+  lint:
+    desc: Lint source and test files
+    cmds:
+      - npx eslint src tests
+
+  lint:fix:
+    desc: Lint and auto-fix source and test files
+    cmds:
+      - npx eslint src tests --fix
