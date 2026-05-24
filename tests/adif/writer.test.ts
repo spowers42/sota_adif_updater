@@ -41,13 +41,14 @@ describe('updateRecords', () => {
     }
   });
 
-  it('joins multiple POTA refs as a comma-delimited list', () => {
+  it('uses POTA_REF_LIST for multiple parks, comma-delimited', () => {
     const result = updateRecords(SIMPLE_FILE, undefined, ['K-5033', 'K-5034']);
-    const pota = result.records[0].fields.find((f) => f.name === 'POTA_REF');
-    expect(pota?.value).toBe('K-5033,K-5034');
+    const potaList = result.records[0].fields.find((f) => f.name === 'POTA_REF_LIST');
+    expect(potaList?.value).toBe('K-5033,K-5034');
+    expect(result.records[0].fields.find((f) => f.name === 'POTA_REF')).toBeUndefined();
   });
 
-  it('replaces existing POTA_REF', () => {
+  it('replaces existing POTA_REF with a new single ref', () => {
     const file: AdifFile = {
       headerText: '',
       records: [
@@ -60,11 +61,24 @@ describe('updateRecords', () => {
     expect(result.records[0].fields.filter((f) => f.name === 'POTA_REF')).toHaveLength(1);
   });
 
+  it('removes existing POTA_REF_LIST when replacing with a single ref', () => {
+    const file: AdifFile = {
+      headerText: '',
+      records: [
+        { fields: [{ name: 'CALL', value: 'W1AW' }, { name: 'POTA_REF_LIST', value: 'K-9998,K-9999' }] },
+      ],
+    };
+    const result = updateRecords(file, undefined, ['K-5033']);
+    expect(result.records[0].fields.find((f) => f.name === 'POTA_REF')?.value).toBe('K-5033');
+    expect(result.records[0].fields.find((f) => f.name === 'POTA_REF_LIST')).toBeUndefined();
+  });
+
   it('does not add any fields when called with no refs', () => {
     const result = updateRecords(SIMPLE_FILE);
     expect(result.records[0].fields).toHaveLength(SIMPLE_FILE.records[0].fields.length);
     expect(result.records[0].fields.find((f) => f.name === 'SOTA_REF')).toBeUndefined();
     expect(result.records[0].fields.find((f) => f.name === 'POTA_REF')).toBeUndefined();
+    expect(result.records[0].fields.find((f) => f.name === 'POTA_REF_LIST')).toBeUndefined();
   });
 
   it('does not mutate the original file', () => {

@@ -26,15 +26,17 @@ export function updateRecords(
 ): AdifFile {
   const updatedRecords = file.records.map((record) => {
     const fields = record.fields.filter(
-      (f) => f.name !== 'SOTA_REF' && f.name !== 'POTA_REF',
+      (f) => f.name !== 'SOTA_REF' && f.name !== 'POTA_REF' && f.name !== 'POTA_REF_LIST',
     );
 
     if (sotaRef) {
       fields.push({ name: 'SOTA_REF', value: sotaRef });
     }
 
-    if (potaRefs.length > 0) {
-      fields.push({ name: 'POTA_REF', value: potaRefs.join(',') });
+    if (potaRefs.length === 1) {
+      fields.push({ name: 'POTA_REF', value: potaRefs[0] });
+    } else if (potaRefs.length > 1) {
+      fields.push({ name: 'POTA_REF_LIST', value: potaRefs.join(',') });
     }
 
     return { fields };

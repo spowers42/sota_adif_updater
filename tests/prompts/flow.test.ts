@@ -90,10 +90,11 @@ describe('runFlow', () => {
     await runFlow();
 
     const written = mockedWriteFile.mock.calls[0][1] as string;
-    expect(written).toContain('K-5033,K-5034');
+    expect(written).toContain('<POTA_REF_LIST:13>K-5033,K-5034');
+    expect(written).not.toContain('<POTA_REF:');
   });
 
-  it('writes both SOTA and multiple POTA refs', async () => {
+  it('writes both SOTA and multiple POTA refs using POTA_REF_LIST', async () => {
     mockedInput
       .mockResolvedValueOnce('/fake/file.adi')
       .mockResolvedValueOnce('W2/WE-003')
@@ -110,7 +111,7 @@ describe('runFlow', () => {
 
     const written = mockedWriteFile.mock.calls[0][1] as string;
     expect(written).toContain('<SOTA_REF:9>W2/WE-003');
-    expect(written).toContain('K-5033,K-5034');
+    expect(written).toContain('<POTA_REF_LIST:13>K-5033,K-5034');
   });
 
   it('does not write when the user declines confirmation', async () => {
