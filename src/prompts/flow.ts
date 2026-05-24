@@ -95,10 +95,10 @@ async function askForPotaRefs(records: AdifRecord[]): Promise<string[]> {
   const refs: string[] = [];
 
   const first = await input({
-    message: 'POTA reference (e.g. K-1234):',
+    message: 'POTA reference (e.g. US-1234):',
     validate: (value: string) => {
       if (!value.trim()) return 'POTA reference is required';
-      if (!validatePotaRef(value)) return 'Invalid format — expected e.g. K-1234 or VE-5082@CA-AB';
+      if (!validatePotaRef(value)) return 'Invalid format — expected e.g. US-1234 or VE-5082@CA-AB';
       return true;
     },
   });
@@ -109,10 +109,10 @@ async function askForPotaRefs(records: AdifRecord[]): Promise<string[]> {
     if (!more) break;
 
     const next = await input({
-      message: 'POTA reference (e.g. K-1234):',
+      message: 'POTA reference (e.g. US-1234):',
       validate: (value: string) => {
         if (!value.trim()) return 'POTA reference is required';
-        if (!validatePotaRef(value)) return 'Invalid format — expected e.g. K-1234 or VE-5082@CA-AB';
+        if (!validatePotaRef(value)) return 'Invalid format — expected e.g. US-1234 or VE-5082@CA-AB';
         return true;
       },
     });
