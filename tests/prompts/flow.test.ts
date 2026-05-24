@@ -25,7 +25,6 @@ const ADIF_WITH_POTA = '<ADIF_VER:5>3.1.4 <EOH>\n\n<CALL:4>W1AW <POTA_REF:6>K-99
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // @ts-expect-error — readFile has overloads; we only use the string-returning form in flow.ts
   mockedReadFile.mockResolvedValue(VALID_ADIF);
   mockedWriteFile.mockResolvedValue(undefined);
 });
@@ -135,9 +134,7 @@ describe('runFlow', () => {
       .mockResolvedValueOnce('/bad/path.adi')
       .mockResolvedValueOnce('/fake/file.adi');
     mockedReadFile
-      // @ts-expect-error — overloads
       .mockRejectedValueOnce(new Error('ENOENT: no such file'))
-      // @ts-expect-error — overloads
       .mockResolvedValueOnce(VALID_ADIF);
     mockedConfirm
       .mockResolvedValueOnce(false) // skip SOTA
@@ -153,9 +150,7 @@ describe('runFlow', () => {
       .mockResolvedValueOnce('/not-adif.txt')
       .mockResolvedValueOnce('/fake/file.adi');
     mockedReadFile
-      // @ts-expect-error — overloads
       .mockResolvedValueOnce('not adif content at all')
-      // @ts-expect-error — overloads
       .mockResolvedValueOnce(VALID_ADIF);
     mockedConfirm
       .mockResolvedValueOnce(false) // skip SOTA
@@ -186,7 +181,6 @@ describe('runFlow', () => {
 
   describe('existing reference warnings', () => {
     it('asks to replace existing SOTA_REF and writes new value when confirmed', async () => {
-      // @ts-expect-error — overloads
       mockedReadFile.mockResolvedValue(ADIF_WITH_SOTA);
       mockedInput
         .mockResolvedValueOnce('/fake/file.adi')
@@ -205,7 +199,6 @@ describe('runFlow', () => {
     });
 
     it('skips SOTA update and does not write when user declines to replace existing SOTA_REF', async () => {
-      // @ts-expect-error — overloads
       mockedReadFile.mockResolvedValue(ADIF_WITH_SOTA);
       mockedInput.mockResolvedValueOnce('/fake/file.adi');
       mockedConfirm
@@ -218,7 +211,6 @@ describe('runFlow', () => {
     });
 
     it('asks to replace existing POTA_REF and writes new value when confirmed', async () => {
-      // @ts-expect-error — overloads
       mockedReadFile.mockResolvedValue(ADIF_WITH_POTA);
       mockedInput
         .mockResolvedValueOnce('/fake/file.adi')
@@ -238,7 +230,6 @@ describe('runFlow', () => {
     });
 
     it('skips POTA update and does not write when user declines to replace existing POTA_REF', async () => {
-      // @ts-expect-error — overloads
       mockedReadFile.mockResolvedValue(ADIF_WITH_POTA);
       mockedInput.mockResolvedValueOnce('/fake/file.adi');
       mockedConfirm
