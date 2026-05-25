@@ -1,0 +1,65 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+
+proc slow_type {text} {
+    foreach char [split $text ""] {
+        send -- $char
+        after 90
+    }
+}
+
+# Use a short path for the demo
+exec cp /Users/scott/Development/sota_adif_updater/demo/sample.adi /tmp/sota_demo.adi
+
+spawn node /Users/scott/Development/sota_adif_updater/dist/src/index.js
+
+# File path prompt
+expect "Path to ADIF file:"
+after 700
+slow_type "/tmp/sota_demo.adi"
+after 400
+send "\r"
+
+# SOTA confirm — type "y" then Enter
+expect "Add a SOTA reference to all records?"
+after 700
+send "y"
+after 300
+send "\r"
+
+# SOTA reference input
+expect "SOTA reference (e.g."
+after 600
+slow_type "W7W/LC-001"
+after 400
+send "\r"
+
+# POTA confirm — type "y" then Enter
+expect "Add a POTA reference to all records?"
+after 700
+send "y"
+after 300
+send "\r"
+
+# POTA reference input
+expect "POTA reference (e.g."
+after 600
+slow_type "US-4415"
+after 400
+send "\r"
+
+# Add another POTA? — type "n" then Enter
+expect "Add another POTA reference?"
+after 700
+send "n"
+after 300
+send "\r"
+
+# Apply confirm — Enter accepts the default Yes
+expect "Apply these changes?"
+after 800
+send "\r"
+
+expect "Done."
+after 1500

@@ -1,5 +1,30 @@
-# sota_adif_updater
-This is a small command line utility to quickly add SOTA and POTA references to an existing ADIF file.
+# SOTA (and POTA) ADIF Updater
+
+A CLI utility to add SOTA and POTA references to an existing ADIF file.
+
+## Installation
+
+Requires Node.js 22 or later.
+
+Install globally from npm:
+
+```bash
+npm install -g @spowers42/sota-adif-updater
+```
+
+Once installed, the `sota-adif-updater` command will be available in your terminal.
+
+## Demo
+
+![Demo](demo/demo.gif)
+
+## Usage
+
+```bash
+sota-adif-updater
+```
+
+The tool will interactively prompt you for the information needed to update your ADIF file.
 
 ## Releasing a new version
 
@@ -15,14 +40,3 @@ This is a small command line utility to quickly add SOTA and POTA references to 
 4. Go to **GitHub → Releases → New Release**, select the tag, add release notes, and click **Publish release**.
 
 The release workflow will automatically build the project and publish the new version to npm.
-
-## One-time npm Trusted Publisher setup
-
-This project uses [npm Trusted Publishers](https://docs.npmjs.com/trusted-publishers) so no stored secrets are needed. To configure it on npmjs.com:
-
-1. Go to the package page → **Settings** → **Trusted Publishers** → **Add a trusted publisher**.
-2. Fill in:
-   - **Repository owner**: `spowers42`
-   - **Repository name**: `sota_adif_updater`
-   - **Workflow filename**: `release.yml`
-3. Save. GitHub Actions will now authenticate via OIDC automatically on each release.
