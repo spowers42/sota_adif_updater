@@ -1,6 +1,9 @@
 {
   "name": "@spowers42/sota-adif-updater",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "description": "A CLI utility to add SOTA and POTA references to an existing ADIF file",
   "main": "dist/index.js",
